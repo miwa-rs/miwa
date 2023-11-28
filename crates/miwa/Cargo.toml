@@ -8,3 +8,4 @@ description = "Miwa"
 
 [dependencies]
 miwa-core = {  path = "../miwa-core", version = "0.0.0" }
+miwa-macros = {  path = "../miwa-macros", version = "0.0.0" }

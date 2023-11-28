@@ -1,14 +1,6 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+mod system;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use system::{
+    Configurable, Extension, ExtensionConfig, ExtensionFactory, ExtensionGroup, FromSystemContext,
+    System, SystemConfig, SystemContext, SystemError, SystemGroup, SystemResult,
+};
