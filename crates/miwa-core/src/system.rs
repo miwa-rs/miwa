@@ -35,12 +35,12 @@ impl System<Prepare> {
         })
     }
 
-    pub fn with_env(&mut self, prefix: &str) -> &mut Self {
+    pub fn with_env(mut self, prefix: &str) -> Self {
         self.0.env = Some(Environment::default().prefix(prefix));
         self
     }
 
-    pub fn with_file(&mut self, path: &str) -> &mut Self {
+    pub fn with_file(mut self, path: &str) -> Self {
         self.0.file = Some(path.to_owned());
         self
     }
@@ -73,7 +73,11 @@ pub struct Build {
 }
 
 impl System<Build> {
-    pub fn add_extension(&mut self, extension: impl ExtensionFactory + 'static) -> &mut Self {
+    pub fn add_extension(mut self, extension: impl ExtensionFactory + 'static) -> Self {
+        self.add_extension_internal(extension);
+        self
+    }
+    fn add_extension_internal(&mut self, extension: impl ExtensionFactory + 'static) {
         let id = extension.id();
         if !self.0.registered.contains(&id) {
             self.0.registered.insert(id);
@@ -85,8 +89,6 @@ impl System<Build> {
                 extension.name()
             )
         }
-
-        self
     }
 
     pub fn add_extension_group(&mut self, group: impl ExtensionGroup + 'static) -> &mut Self {
@@ -169,7 +171,7 @@ pub struct SystemGroup<'a>(&'a mut System<Build>);
 
 impl<'a> SystemGroup<'a> {
     pub fn add_extension(&mut self, extension: impl ExtensionFactory + 'static) -> &mut Self {
-        self.0.add_extension(extension);
+        self.0.add_extension_internal(extension);
         self
     }
 }
