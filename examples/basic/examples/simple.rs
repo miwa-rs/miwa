@@ -5,7 +5,8 @@ use miwa::derive::{extension, Injectable};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    System::prepare()?
+    System::prepare()
+        .build()?
         .add_extension(second_extension)
         .add_extension(first_extension)
         .start()

@@ -3,12 +3,14 @@ mod container;
 mod context;
 mod error;
 mod extension;
+mod phase;
 
 use std::{
     any::TypeId,
     collections::{HashMap, HashSet},
 };
 
+use ::config::{Config, Environment, File};
 pub use config::{Configurable, ExtensionConfig, SystemConfig};
 pub use context::{FromSystemContext, SystemContext};
 pub use error::{SystemError, SystemResult};
@@ -18,29 +20,65 @@ pub use extension::{
 use petgraph::{algo::toposort, graph::NodeIndex, visit::NodeRef, Graph};
 use tracing::{info, warn};
 
-pub struct System {
+pub struct System<P>(P);
+
+pub struct Prepare {
+    env: Option<Environment>,
+    file: Option<String>,
+}
+
+impl System<Prepare> {
+    pub fn prepare() -> Self {
+        System(Prepare {
+            env: None,
+            file: None,
+        })
+    }
+
+    pub fn with_env(&mut self, prefix: &str) -> &mut Self {
+        self.0.env = Some(Environment::default().prefix(prefix));
+        self
+    }
+
+    pub fn with_file(&mut self, path: &str) -> &mut Self {
+        self.0.file = Some(path.to_owned());
+        self
+    }
+
+    pub fn build(self) -> SystemResult<System<Build>> {
+        let mut cfg = Config::builder();
+
+        if let Some(env) = self.0.env {
+            cfg = cfg.add_source(env);
+        }
+
+        if let Some(file) = self.0.file {
+            cfg = cfg.add_source(File::with_name(file.as_str()));
+        }
+
+        let config = cfg.build()?;
+
+        Ok(System(Build {
+            extensions: vec![],
+            ctx: SystemContext::new(SystemConfig::with_config(config)?),
+            registered: HashSet::new(),
+        }))
+    }
+}
+
+pub struct Build {
     extensions: Vec<Box<dyn ErasedExtensionFactory>>,
     ctx: SystemContext,
     registered: HashSet<TypeId>,
 }
 
-impl System {
-    pub fn prepare() -> SystemResult<Self> {
-        let config = SystemConfig::default_cfg()?;
-
-        Ok(System {
-            extensions: vec![],
-            ctx: SystemContext::new(config.clone()),
-            registered: HashSet::new(),
-        })
-    }
-
+impl System<Build> {
     pub fn add_extension(&mut self, extension: impl ExtensionFactory + 'static) -> &mut Self {
         let id = extension.id();
-        if !self.registered.contains(&id) {
-            self.registered.insert(id);
+        if !self.0.registered.contains(&id) {
+            self.0.registered.insert(id);
             let erased = IntoErasedExtensionFactory::from_extension_factory(extension);
-            self.extensions.push(Box::new(erased));
+            self.0.extensions.push(Box::new(erased));
         } else {
             warn!(
                 "Skipping extension {}: which is already registered.",
@@ -62,13 +100,13 @@ impl System {
         let sorted = self.build_graph();
 
         for idx in &sorted {
-            let extension = &self.extensions[*idx];
+            let extension = &self.0.extensions[*idx];
             info!("initializing extension {}", extension.name());
-            let ext = extension.build(&self.ctx).await?;
+            let ext = extension.build(&self.0.ctx).await?;
             extensions.push(ext);
         }
         for idx in &sorted {
-            let extension = &self.extensions[*idx];
+            let extension = &self.0.extensions[*idx];
             let ext = &extensions[*idx];
             info!("Starting extension {}", extension.name());
             ext.start().await?;
@@ -77,7 +115,7 @@ impl System {
         let _ = tokio::signal::ctrl_c().await;
 
         for idx in sorted {
-            let extension = &self.extensions[idx];
+            let extension = &self.0.extensions[idx];
             let ext = &extensions[idx];
             info!("Stopping extension {}", extension.name());
             ext.shutdown().await?;
@@ -91,12 +129,12 @@ impl System {
         let mut providing = HashMap::new();
         let mut requiring = HashMap::new();
 
-        for extension in &self.extensions {
+        for extension in &self.0.extensions {
             let node = graph.add_node(extension.name().to_string());
             nodes.insert(node.id(), node);
         }
 
-        for (idx, extension) in self.extensions.iter().enumerate() {
+        for (idx, extension) in self.0.extensions.iter().enumerate() {
             for ty in extension.exposes() {
                 let value = providing.entry(idx).or_insert_with(Vec::new);
                 value.push(ty);
@@ -127,7 +165,7 @@ impl System {
     }
 }
 
-pub struct SystemGroup<'a>(&'a mut System);
+pub struct SystemGroup<'a>(&'a mut System<Build>);
 
 impl<'a> SystemGroup<'a> {
     pub fn add_extension(&mut self, extension: impl ExtensionFactory + 'static) -> &mut Self {

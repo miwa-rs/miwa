@@ -20,6 +20,9 @@ impl SystemConfig {
         })
     }
 
+    pub fn with_config(cfg: Config) -> SystemResult<Self> {
+        Ok(SystemConfig { cfg })
+    }
     pub fn get<T: DeserializeOwned>(&self, key: &str) -> SystemResult<T> {
         self.cfg.get(key).map(Ok)?
     }
