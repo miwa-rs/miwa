@@ -18,7 +18,7 @@ pub fn generate(input: &ExtensionConfig) -> syn::Result<proc_macro2::TokenStream
     let ident = &input.ident;
     let prefix = &input.prefix;
     Ok(quote! {
-        impl #crate_name::Configurable for #ident {
+        impl #crate_name::core::Configurable for #ident {
             fn prefix() -> &'static str {
                 #prefix
             }
