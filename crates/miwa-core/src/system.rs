@@ -10,8 +10,8 @@ use std::{
     collections::{HashMap, HashSet},
 };
 
+pub use self::config::{Configurable, ExtensionConfig, SystemConfig};
 use ::config::{Config, Environment, File};
-pub use config::{Configurable, ExtensionConfig, SystemConfig};
 pub use context::{FromSystemContext, SystemContext};
 pub use error::{SystemError, SystemResult};
 pub use extension::{
