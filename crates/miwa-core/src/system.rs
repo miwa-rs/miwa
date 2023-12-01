@@ -36,7 +36,7 @@ impl System<Prepare> {
     }
 
     pub fn with_env(mut self, prefix: &str) -> Self {
-        self.0.env = Some(Environment::default().prefix(prefix));
+        self.0.env = Some(Environment::default().prefix(prefix).separator("_"));
         self
     }
 
