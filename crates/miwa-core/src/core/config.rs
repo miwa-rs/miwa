@@ -3,27 +3,27 @@ use std::ops::Deref;
 use config::{Config, Environment};
 use serde::de::DeserializeOwned;
 
-use crate::{FromSystemContext, SystemResult};
+use crate::{FromMiwaContext, MiwaResult};
 
 #[derive(Debug, Clone)]
-pub struct SystemConfig {
+pub struct MiwaConfig {
     cfg: Config,
 }
 
-impl SystemConfig {
-    pub fn default_cfg() -> SystemResult<Self> {
+impl MiwaConfig {
+    pub fn default_cfg() -> MiwaResult<Self> {
         let prefix = "MIWA".to_string();
-        Ok(SystemConfig {
+        Ok(MiwaConfig {
             cfg: Config::builder()
                 .add_source(Environment::with_prefix(&prefix).separator("_"))
                 .build()?,
         })
     }
 
-    pub fn with_config(cfg: Config) -> SystemResult<Self> {
-        Ok(SystemConfig { cfg })
+    pub fn with_config(cfg: Config) -> MiwaResult<Self> {
+        Ok(MiwaConfig { cfg })
     }
-    pub fn get<T: DeserializeOwned>(&self, key: &str) -> SystemResult<T> {
+    pub fn get<T: DeserializeOwned>(&self, key: &str) -> MiwaResult<T> {
         self.cfg.get(key).map(Ok)?
     }
 }
@@ -42,8 +42,8 @@ pub trait Configurable {
     fn prefix() -> &'static str;
 }
 
-impl<'a, T: Configurable + DeserializeOwned> FromSystemContext<'a> for ExtensionConfig<T> {
-    fn from_context(context: &'a crate::SystemContext) -> crate::SystemResult<Self> {
+impl<'a, T: Configurable + DeserializeOwned> FromMiwaContext<'a> for ExtensionConfig<T> {
+    fn from_context(context: &'a crate::MiwaContext) -> crate::MiwaResult<Self> {
         let cfg = context.config().get::<T>(T::prefix())?;
         Ok(ExtensionConfig(cfg))
     }

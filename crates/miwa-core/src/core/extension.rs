@@ -1,11 +1,11 @@
 use std::any::TypeId;
 
-use super::{error::SystemResult, SystemContext, SystemGroup};
+use super::{error::MiwaResult, MiwaContext, SystemGroup};
 
 #[async_trait::async_trait]
 pub trait Extension {
-    async fn start(&self) -> SystemResult<()>;
-    async fn shutdown(&self) -> SystemResult<()>;
+    async fn start(&self) -> MiwaResult<()>;
+    async fn shutdown(&self) -> MiwaResult<()>;
 }
 
 #[async_trait::async_trait]
@@ -14,7 +14,7 @@ where
     Self: 'static,
 {
     fn name(&self) -> &str;
-    async fn build(&self, context: &SystemContext) -> SystemResult<Box<dyn Extension>>;
+    async fn build(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
 
     fn exposes(&self) -> Vec<TypeId> {
         vec![]
@@ -32,7 +32,7 @@ where
 #[async_trait::async_trait]
 pub trait ErasedExtensionFactory {
     fn name(&self) -> &str;
-    async fn build(&self, context: &SystemContext) -> SystemResult<Box<dyn Extension>>;
+    async fn build(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
 
     fn exposes(&self) -> Vec<TypeId> {
         vec![]
@@ -61,7 +61,7 @@ where
     fn name(&self) -> &str {
         self.factory.name()
     }
-    async fn build(&self, context: &SystemContext) -> SystemResult<Box<dyn Extension>> {
+    async fn build(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>> {
         self.factory.build(context).await
     }
     fn exposes(&self) -> Vec<TypeId> {

@@ -54,7 +54,7 @@ pub fn generate(extension: &Extension, item_fn: &ItemFn) -> proc_macro::TokenStr
             args.push(id.clone());
             requires.push(quote! { std::any::TypeId::of::<#ty>()});
             extractors.push(quote! {
-                let #id = <#ty as #crate_name::core::FromSystemContext>::from_context(&context)?;
+                let #id = <#ty as #crate_name::core::FromMiwaContext>::from_context(&context)?;
             });
         }
     }
@@ -73,7 +73,7 @@ pub fn generate(extension: &Extension, item_fn: &ItemFn) -> proc_macro::TokenStr
                 #extension_name
             }
 
-            async fn build(&self, context : &#crate_name::core::SystemContext) -> #crate_name::core::SystemResult<Box<dyn #crate_name::core::Extension>> {
+            async fn build(&self, context : &#crate_name::core::MiwaContext) -> #crate_name::core::MiwaResult<Box<dyn #crate_name::core::Extension>> {
                #(#extractors)*
                #item_fn
                let extension = #ident(#(#args),*).await?;

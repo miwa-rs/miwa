@@ -1,18 +1,18 @@
 use std::sync::{Arc, Mutex};
 
-use crate::{SystemConfig, SystemResult};
+use crate::{MiwaConfig, MiwaResult};
 
 use super::container::Container;
 
 #[derive(Clone)]
-pub struct SystemContext {
+pub struct MiwaContext {
     services: Arc<Mutex<Container>>,
-    config: SystemConfig,
+    config: MiwaConfig,
 }
 
-impl SystemContext {
-    pub(crate) fn new(config: SystemConfig) -> SystemContext {
-        let ctx = SystemContext {
+impl MiwaContext {
+    pub(crate) fn new(config: MiwaConfig) -> MiwaContext {
+        let ctx = MiwaContext {
             services: Arc::new(Mutex::new(Container::new())),
             config,
         };
@@ -34,20 +34,20 @@ impl SystemContext {
         services.register(resource);
     }
 
-    pub fn config(&self) -> &SystemConfig {
+    pub fn config(&self) -> &MiwaConfig {
         &self.config
     }
 }
 
-pub trait FromSystemContext<'a>
+pub trait FromMiwaContext<'a>
 where
     Self: Sized,
 {
-    fn from_context(context: &'a SystemContext) -> SystemResult<Self>;
+    fn from_context(context: &'a MiwaContext) -> MiwaResult<Self>;
 }
 
-impl<'a> FromSystemContext<'a> for &'a SystemContext {
-    fn from_context(context: &'a SystemContext) -> SystemResult<Self> {
+impl<'a> FromMiwaContext<'a> for &'a MiwaContext {
+    fn from_context(context: &'a MiwaContext) -> MiwaResult<Self> {
         Ok(context)
     }
 }

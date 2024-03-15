@@ -10,26 +10,26 @@ use std::{
     collections::{HashMap, HashSet},
 };
 
-pub use self::config::{Configurable, ExtensionConfig, SystemConfig};
+pub use self::config::{Configurable, ExtensionConfig, MiwaConfig};
 use ::config::{Config, Environment, File};
-pub use context::{FromSystemContext, SystemContext};
-pub use error::{SystemError, SystemResult};
+pub use context::{FromMiwaContext, MiwaContext};
+pub use error::{MiwaError, MiwaResult};
 pub use extension::{
     ErasedExtensionFactory, Extension, ExtensionFactory, ExtensionGroup, IntoErasedExtensionFactory,
 };
 use petgraph::{algo::toposort, graph::NodeIndex, visit::NodeRef, Graph};
 use tracing::{info, warn};
 
-pub struct System<P>(P);
+pub struct Miwa<P>(P);
 
 pub struct Prepare {
     env: Option<Environment>,
     file: Option<String>,
 }
 
-impl System<Prepare> {
+impl Miwa<Prepare> {
     pub fn prepare() -> Self {
-        System(Prepare {
+        Miwa(Prepare {
             env: None,
             file: None,
         })
@@ -45,7 +45,7 @@ impl System<Prepare> {
         self
     }
 
-    pub fn build(self) -> SystemResult<System<Build>> {
+    pub fn build(self) -> MiwaResult<Miwa<Build>> {
         let mut cfg = Config::builder();
 
         if let Some(env) = self.0.env {
@@ -58,9 +58,9 @@ impl System<Prepare> {
 
         let config = cfg.build()?;
 
-        Ok(System(Build {
+        Ok(Miwa(Build {
             extensions: vec![],
-            ctx: SystemContext::new(SystemConfig::with_config(config)?),
+            ctx: MiwaContext::new(MiwaConfig::with_config(config)?),
             registered: HashSet::new(),
         }))
     }
@@ -68,11 +68,11 @@ impl System<Prepare> {
 
 pub struct Build {
     extensions: Vec<Box<dyn ErasedExtensionFactory>>,
-    ctx: SystemContext,
+    ctx: MiwaContext,
     registered: HashSet<TypeId>,
 }
 
-impl System<Build> {
+impl Miwa<Build> {
     pub fn add_extension(mut self, extension: impl ExtensionFactory + 'static) -> Self {
         self.add_extension_internal(extension);
         self
@@ -96,7 +96,7 @@ impl System<Build> {
         self
     }
 
-    pub async fn start(&mut self) -> SystemResult<()> {
+    pub async fn start(&mut self) -> MiwaResult<()> {
         let mut extensions = vec![];
 
         let sorted = self.build_graph();
@@ -167,7 +167,7 @@ impl System<Build> {
     }
 }
 
-pub struct SystemGroup<'a>(&'a mut System<Build>);
+pub struct SystemGroup<'a>(&'a mut Miwa<Build>);
 
 impl<'a> SystemGroup<'a> {
     pub fn add_extension(&mut self, extension: impl ExtensionFactory + 'static) -> &mut Self {

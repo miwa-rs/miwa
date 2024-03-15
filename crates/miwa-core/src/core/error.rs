@@ -1,7 +1,7 @@
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
-pub enum SystemError {
+pub enum MiwaError {
     #[error("Component not found {0}")]
     ComponentMissing(String),
     #[error(transparent)]
@@ -10,10 +10,10 @@ pub enum SystemError {
     Config(#[from] ConfigError),
 }
 
-impl SystemError {
-    pub fn component_missing(component: &str) -> SystemError {
-        SystemError::ComponentMissing(component.to_owned())
+impl MiwaError {
+    pub fn component_missing(component: &str) -> MiwaError {
+        MiwaError::ComponentMissing(component.to_owned())
     }
 }
 
-pub type SystemResult<T> = Result<T, SystemError>;
+pub type MiwaResult<T> = Result<T, MiwaError>;

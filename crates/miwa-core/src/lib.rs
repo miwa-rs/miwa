@@ -1,6 +1,6 @@
-mod system;
+mod core;
 
-pub use system::{
-    Configurable, Extension, ExtensionConfig, ExtensionFactory, ExtensionGroup, FromSystemContext,
-    System, SystemConfig, SystemContext, SystemError, SystemGroup, SystemResult,
+pub use core::{
+    Configurable, Extension, ExtensionConfig, ExtensionFactory, ExtensionGroup, FromMiwaContext,
+    Miwa, MiwaConfig, MiwaContext, MiwaError, MiwaResult, SystemGroup,
 };

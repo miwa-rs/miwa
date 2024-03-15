@@ -5,6 +5,6 @@ pub mod derive {
 pub mod core {
     pub use miwa_core::{
         Configurable, Extension, ExtensionConfig, ExtensionFactory, ExtensionGroup,
-        FromSystemContext, System, SystemConfig, SystemContext, SystemError, SystemResult,
+        FromMiwaContext, Miwa, MiwaConfig, MiwaContext, MiwaError, MiwaResult,
     };
 }
