@@ -29,12 +29,18 @@ impl Extension for FirstExtension {
 }
 
 #[interface]
-pub trait Service {}
+pub trait Service {
+    fn hello(&self);
+}
 
 #[derive(Clone, Debug, Injectable)]
 pub struct ServiceImpl;
 
-impl Service for ServiceImpl {}
+impl Service for ServiceImpl {
+    fn hello(&self) {
+        println!("Hello Service")
+    }
+}
 
 #[extension(provides(ServiceRef))]
 async fn first_extension(context: &MiwaContext) -> MiwaResult<FirstExtension> {
@@ -52,6 +58,7 @@ struct SecondExtension(ServiceRef);
 #[async_trait::async_trait]
 impl Extension for SecondExtension {
     async fn start(&self) -> MiwaResult<()> {
+        self.0.hello();
         Ok(())
     }
 
