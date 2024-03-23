@@ -1,5 +1,5 @@
 pub mod derive {
-    pub use miwa_macros::{extension, ExtensionConfig, Injectable};
+    pub use miwa_macros::{extension, interface, ExtensionConfig, Injectable};
 }
 
 pub mod core {

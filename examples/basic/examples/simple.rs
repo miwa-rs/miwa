@@ -1,5 +1,5 @@
 use miwa::core::{Extension, Miwa, MiwaContext, MiwaResult};
-use miwa::derive::{extension, Injectable};
+use miwa::derive::{extension, interface, Injectable};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,21 +28,26 @@ impl Extension for FirstExtension {
     }
 }
 
-#[derive(Clone, Debug, Injectable)]
-pub struct Service;
+#[interface]
+pub trait Service {}
 
-#[extension(provides(Service))]
+#[derive(Clone, Debug, Injectable)]
+pub struct ServiceImpl;
+
+impl Service for ServiceImpl {}
+
+#[extension(provides(ServiceRef))]
 async fn first_extension(context: &MiwaContext) -> MiwaResult<FirstExtension> {
-    context.register(Service);
+    context.register(ServiceRef::wrap(ServiceImpl));
     Ok(FirstExtension)
 }
 
 #[extension]
-async fn second_extension(service: Service) -> MiwaResult<SecondExtension> {
+async fn second_extension(service: ServiceRef) -> MiwaResult<SecondExtension> {
     Ok(SecondExtension(service))
 }
 
-struct SecondExtension(Service);
+struct SecondExtension(ServiceRef);
 
 #[async_trait::async_trait]
 impl Extension for SecondExtension {
