@@ -8,7 +8,7 @@ description = "Miwa core"
 
 [dependencies]
 miwa-macros = {  path = "../miwa-macros", version = "0.0.0" }
-petgraph= "0.6.4"
+petgraph= "0.7.1"
 config = "0.15.11"
 async-trait = {workspace = true}
 thiserror = {workspace = true}
