@@ -13,8 +13,9 @@ pub use self::config::{Configurable, ExtensionConfig, MiwaConfig};
 use ::config::{Config, Environment, File};
 pub use context::{FromMiwaContext, MiwaContext};
 pub use error::{MiwaError, MiwaResult};
+use extension::{InternalExtensionFactory, IntoInternalExtensionFactory};
 pub use extension::{
-    ErasedExtensionFactory, Extension, ExtensionFactory, ExtensionGroup, IntoErasedExtensionFactory,
+     Extension, ExtensionFactory, ExtensionGroup,
 };
 use petgraph::{algo::toposort, graph::NodeIndex, visit::NodeRef, Graph};
 use tracing::{info, warn};
@@ -66,21 +67,23 @@ impl Miwa<Prepare> {
 }
 
 pub struct Build {
-    extensions: Vec<Box<dyn ErasedExtensionFactory>>,
+    extensions: Vec<Box<dyn InternalExtensionFactory>>,
     ctx: MiwaContext,
     registered: HashSet<TypeId>,
 }
 
 impl Miwa<Build> {
+
     pub fn add_extension(mut self, extension: impl ExtensionFactory + 'static) -> Self {
         self.add_extension_internal(extension);
         self
     }
+
     fn add_extension_internal(&mut self, extension: impl ExtensionFactory + 'static) {
         let id = extension.id();
         if !self.0.registered.contains(&id) {
             self.0.registered.insert(id);
-            let erased = IntoErasedExtensionFactory::from_extension_factory(extension);
+            let erased = IntoInternalExtensionFactory::from_extension_factory(extension);
             self.0.extensions.push(Box::new(erased));
         } else {
             warn!(
@@ -98,14 +101,15 @@ impl Miwa<Build> {
     pub async fn start(&mut self) -> MiwaResult<()> {
         let mut extensions = vec![];
 
-        let sorted = self.build_graph();
+        let sorted = self.sort_dependencies();
 
         for idx in &sorted {
             let extension = &self.0.extensions[*idx];
             info!("initializing extension {}", extension.name());
-            let ext = extension.build(&self.0.ctx).await?;
+            let ext = extension.init(&self.0.ctx).await?;
             extensions.push(ext);
         }
+
         for idx in &sorted {
             let extension = &self.0.extensions[*idx];
             let ext = &extensions[*idx];
@@ -124,7 +128,7 @@ impl Miwa<Build> {
         Ok(())
     }
 
-    fn build_graph(&mut self) -> Vec<usize> {
+    fn sort_dependencies(&mut self) -> Vec<usize> {
         let mut graph = Graph::new();
         let mut nodes = HashMap::new();
         let mut providing = HashMap::new();

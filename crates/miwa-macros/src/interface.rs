@@ -22,7 +22,7 @@ pub fn generate(extension: &Interface, item_trait: &ItemTrait) -> proc_macro::To
         #vis struct #ident(std::sync::Arc<dyn #original_ident + std::marker::Send + std::marker::Sync + 'static>);
 
         impl #ident {
-           pub fn wrap(s : impl #original_ident + std::marker::Send + std::marker::Sync + 'static) -> #ident {
+           pub fn of(s : impl #original_ident + std::marker::Send + std::marker::Sync + 'static) -> #ident {
                #ident(std::sync::Arc::new(s))
            }
         }

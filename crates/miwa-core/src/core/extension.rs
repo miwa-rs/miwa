@@ -14,7 +14,7 @@ where
     Self: 'static,
 {
     fn name(&self) -> &str;
-    async fn build(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
+    async fn init(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
 
     fn exposes(&self) -> Vec<TypeId> {
         vec![]
@@ -30,9 +30,9 @@ where
 }
 
 #[async_trait::async_trait]
-pub trait ErasedExtensionFactory {
+pub(crate) trait InternalExtensionFactory {
     fn name(&self) -> &str;
-    async fn build(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
+    async fn init(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
 
     fn exposes(&self) -> Vec<TypeId> {
         vec![]
@@ -43,26 +43,26 @@ pub trait ErasedExtensionFactory {
     }
 }
 
-pub struct IntoErasedExtensionFactory<F> {
+pub(crate) struct IntoInternalExtensionFactory<F> {
     factory: F,
 }
 
-impl<F> IntoErasedExtensionFactory<F> {
+impl<F> IntoInternalExtensionFactory<F> {
     pub fn from_extension_factory(factory: F) -> Self {
-        IntoErasedExtensionFactory { factory }
+        IntoInternalExtensionFactory { factory }
     }
 }
 
 #[async_trait::async_trait]
-impl<F> ErasedExtensionFactory for IntoErasedExtensionFactory<F>
+impl<F> InternalExtensionFactory for IntoInternalExtensionFactory<F>
 where
     F: ExtensionFactory,
 {
     fn name(&self) -> &str {
         self.factory.name()
     }
-    async fn build(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>> {
-        self.factory.build(context).await
+    async fn init(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>> {
+        self.factory.init(context).await
     }
     fn exposes(&self) -> Vec<TypeId> {
         self.factory.exposes()

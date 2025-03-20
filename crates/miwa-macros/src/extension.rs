@@ -73,7 +73,7 @@ pub fn generate(extension: &Extension, item_fn: &ItemFn) -> proc_macro::TokenStr
                 #extension_name
             }
 
-            async fn build(&self, context : &#crate_name::core::MiwaContext) -> #crate_name::core::MiwaResult<Box<dyn #crate_name::core::Extension>> {
+            async fn init(&self, context : &#crate_name::core::MiwaContext) -> #crate_name::core::MiwaResult<Box<dyn #crate_name::core::Extension>> {
                #(#extractors)*
                #item_fn
                let extension = #ident(#(#args),*).await?;

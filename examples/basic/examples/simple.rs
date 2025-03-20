@@ -44,7 +44,7 @@ impl Service for ServiceImpl {
 
 #[extension(provides(ServiceRef))]
 async fn first_extension(context: &MiwaContext) -> MiwaResult<FirstExtension> {
-    context.register(ServiceRef::wrap(ServiceImpl));
+    context.register(ServiceRef::of(ServiceImpl));
     Ok(FirstExtension)
 }
 
