@@ -3,7 +3,6 @@ mod container;
 mod context;
 mod error;
 mod extension;
-mod phase;
 
 use std::{
     any::TypeId,
@@ -169,7 +168,7 @@ impl Miwa<Build> {
 
 pub struct SystemGroup<'a>(&'a mut Miwa<Build>);
 
-impl<'a> SystemGroup<'a> {
+impl SystemGroup<'_> {
     pub fn add_extension(&mut self, extension: impl ExtensionFactory + 'static) -> &mut Self {
         self.0.add_extension_internal(extension);
         self

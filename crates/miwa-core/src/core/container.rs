@@ -30,6 +30,6 @@ impl DynSingleton {
         DynSingleton(Box::new(resource))
     }
     pub fn as_owned<T: Clone + 'static>(&self) -> Option<T> {
-        self.0.downcast_ref::<T>().map(Clone::clone)
+        self.0.downcast_ref::<T>().cloned()
     }
 }
