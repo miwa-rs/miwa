@@ -31,6 +31,11 @@ impl Miwa<Prepare> {
         })
     }
 
+    pub fn with_json(mut self, json: Value) -> Self {
+        self.0.json = Some(json);
+        self
+    }
+
     pub fn with_env(mut self, prefix: &str) -> Self {
         self.0.env = Some(Environment::default().prefix(prefix).separator("_"));
         self
