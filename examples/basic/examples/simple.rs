@@ -5,12 +5,14 @@ use miwa::derive::{extension, interface, Injectable};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    Miwa::prepare()
+    let mut handle = Miwa::prepare()
         .build()?
         .add_extension(second_extension)
         .add_extension(first_extension)
         .start()
         .await?;
+
+    handle.wait().await?;
 
     Ok(())
 }
