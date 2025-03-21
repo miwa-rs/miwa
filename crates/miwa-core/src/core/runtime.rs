@@ -1,6 +1,7 @@
 use crate::core::extension::{InternalExtensionFactory, IntoInternalExtensionFactory};
 use config::{Config, Environment, File};
 use petgraph::{algo::toposort, graph::NodeIndex, visit::NodeRef, Graph};
+use serde_json::Value;
 use std::{
     any::TypeId,
     collections::{HashMap, HashSet},
@@ -9,12 +10,15 @@ use tokio::sync::watch::{Receiver, Sender};
 use tracing::{info, warn};
 use uuid::Uuid;
 
-use super::{ExtensionFactory, ExtensionGroup, MiwaConfig, MiwaContext, MiwaResult};
+use super::{
+    config::JsonSource, ExtensionFactory, ExtensionGroup, MiwaConfig, MiwaContext, MiwaResult,
+};
 
 pub struct Miwa<P>(P);
 
 pub struct Prepare {
     env: Option<Environment>,
+    json: Option<Value>,
     file: Option<String>,
 }
 
@@ -22,6 +26,7 @@ impl Miwa<Prepare> {
     pub fn prepare() -> Self {
         Miwa(Prepare {
             env: None,
+            json: None,
             file: None,
         })
     }
@@ -41,6 +46,10 @@ impl Miwa<Prepare> {
 
         if let Some(env) = self.0.env {
             cfg = cfg.add_source(env);
+        }
+
+        if let Some(json) = self.0.json {
+            cfg = cfg.add_source(JsonSource(json));
         }
 
         if let Some(file) = self.0.file {
