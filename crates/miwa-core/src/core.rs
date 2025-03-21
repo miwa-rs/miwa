@@ -40,8 +40,8 @@ impl Miwa<Prepare> {
         self
     }
 
-    pub fn with_file(mut self, path: &str) -> Self {
-        self.0.file = Some(path.to_owned());
+    pub fn with_file(mut self, path: Option<String>) -> Self {
+        self.0.file = path;
         self
     }
 
