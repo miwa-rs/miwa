@@ -16,3 +16,4 @@ tokio = {workspace = true}
 anyhow = {workspace = true}
 tracing = {workspace = true}
 serde = {workspace = true}
+uuid.workspace = true

@@ -23,6 +23,7 @@ impl MiwaConfig {
     pub fn with_config(cfg: Config) -> MiwaResult<Self> {
         Ok(MiwaConfig { cfg })
     }
+
     pub fn get<T: DeserializeOwned>(&self, key: &str) -> MiwaResult<T> {
         self.cfg.get(key).map(Ok)?
     }

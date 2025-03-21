@@ -7,6 +7,7 @@ use std::{
 };
 use tokio::sync::watch::{Receiver, Sender};
 use tracing::{info, warn};
+use uuid::Uuid;
 
 use super::{ExtensionFactory, ExtensionGroup, MiwaConfig, MiwaContext, MiwaResult};
 
@@ -46,11 +47,17 @@ impl Miwa<Prepare> {
             cfg = cfg.add_source(File::with_name(file.as_str()));
         }
 
-        let config = cfg.build()?;
+        let config = MiwaConfig::with_config(cfg.build()?)?;
+
+        let component_id: String = config
+            .get("component_id")
+            .ok()
+            .unwrap_or_else(|| Uuid::new_v4().to_string());
 
         Ok(Miwa(Build {
+            component_id,
             extensions: vec![],
-            ctx: MiwaContext::new(MiwaConfig::with_config(config)?),
+            ctx: MiwaContext::new(config),
             registered: HashSet::new(),
         }))
     }
@@ -60,6 +67,7 @@ pub struct Build {
     extensions: Vec<Box<dyn InternalExtensionFactory>>,
     ctx: MiwaContext,
     registered: HashSet<TypeId>,
+    component_id: String,
 }
 
 impl Miwa<Build> {
@@ -109,6 +117,7 @@ impl Miwa<Build> {
         let (shutdown_trigger, _shutdown_receiver) = tokio::sync::watch::channel(());
         let (shutdown_notifier, shutdown_listener) = tokio::sync::watch::channel(());
 
+        let component_id = self.0.component_id.clone();
         let miwa = self;
 
         tokio::task::spawn(async move {
@@ -124,7 +133,11 @@ impl Miwa<Build> {
             let _ = shutdown_notifier.send(());
         });
 
-        Ok(MiwaHandle::new(shutdown_trigger, shutdown_listener))
+        Ok(MiwaHandle::new(
+            component_id,
+            shutdown_trigger,
+            shutdown_listener,
+        ))
     }
 
     fn sort_dependencies(&mut self) -> Vec<usize> {
@@ -179,13 +192,18 @@ impl SystemGroup<'_> {
 }
 
 pub struct MiwaHandle {
+    component_id: String,
     shutdown: Sender<()>,
     waiter: Receiver<()>,
 }
 
 impl MiwaHandle {
-    pub fn new(shutdown: Sender<()>, waiter: Receiver<()>) -> Self {
-        Self { shutdown, waiter }
+    pub fn new(component_id: String, shutdown: Sender<()>, waiter: Receiver<()>) -> Self {
+        Self {
+            component_id,
+            shutdown,
+            waiter,
+        }
     }
 
     pub async fn shutdown(self) {
@@ -198,5 +216,9 @@ impl MiwaHandle {
             .await
             .map_err(anyhow::Error::from)
             .map(Ok)?
+    }
+
+    pub fn component_id(&self) -> &str {
+        &self.component_id
     }
 }

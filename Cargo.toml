@@ -9,3 +9,4 @@ tracing = "0.1.37"
 tokio = { version = "1.28.1", features = ["full"] }
 anyhow = "1.0.71"
 serde={version = "1", features= ["derive"]}
+uuid= { version = "1", features=["v4"] }
