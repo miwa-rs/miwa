@@ -6,13 +6,15 @@ use super::container::Container;
 
 #[derive(Clone)]
 pub struct MiwaContext {
+    component_id: String,
     services: Arc<Mutex<Container>>,
     config: MiwaConfig,
 }
 
 impl MiwaContext {
-    pub(crate) fn new(config: MiwaConfig) -> MiwaContext {
+    pub(crate) fn new(component_id: String, config: MiwaConfig) -> MiwaContext {
         let ctx = MiwaContext {
+            component_id,
             services: Arc::new(Mutex::new(Container::new())),
             config,
         };
@@ -36,6 +38,10 @@ impl MiwaContext {
 
     pub fn config(&self) -> &MiwaConfig {
         &self.config
+    }
+
+    pub fn component_id(&self) -> &str {
+        &self.component_id
     }
 }
 

@@ -55,9 +55,9 @@ impl Miwa<Prepare> {
             .unwrap_or_else(|| Uuid::new_v4().to_string());
 
         Ok(Miwa(Build {
-            component_id,
+            component_id: component_id.clone(),
             extensions: vec![],
-            ctx: MiwaContext::new(config),
+            ctx: MiwaContext::new(component_id, config),
             registered: HashSet::new(),
         }))
     }
