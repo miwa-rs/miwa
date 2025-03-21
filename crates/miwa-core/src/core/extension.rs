@@ -3,7 +3,7 @@ use std::any::TypeId;
 use super::{error::MiwaResult, MiwaContext, SystemGroup};
 
 #[async_trait::async_trait]
-pub trait Extension : Send {
+pub trait Extension: Send {
     async fn start(&self) -> MiwaResult<()>;
     async fn shutdown(&self) -> MiwaResult<()>;
 }
@@ -30,7 +30,7 @@ where
 }
 
 #[async_trait::async_trait]
-pub(crate) trait InternalExtensionFactory : Send {
+pub(crate) trait InternalExtensionFactory: Send {
     fn name(&self) -> &str;
     async fn init(&self, context: &MiwaContext) -> MiwaResult<Box<dyn Extension>>;
 

@@ -122,7 +122,6 @@ impl Miwa<Build> {
             }
 
             let _ = shutdown_notifier.send(());
-
         });
 
         Ok(MiwaHandle::new(shutdown_trigger, shutdown_listener))
