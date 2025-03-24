@@ -1,11 +1,11 @@
 [package]
 name = "miwa"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2021"
 license = "Apache-2.0"
 description = "Miwa"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-miwa-core = {  path = "../miwa-core", version = "0.0.0" }
-miwa-macros = {  path = "../miwa-macros", version = "0.0.0" }
+miwa-core = {  path = "../miwa-core", version = "0.0.1" }
+miwa-macros = {  path = "../miwa-macros", version = "0.0.1" }
