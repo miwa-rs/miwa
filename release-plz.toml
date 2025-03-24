@@ -1,0 +1,32 @@
+[workspace]
+publish = false
+release = false
+git_release_enable = false
+changelog_config = "cliff.toml"
+changelog_update = false
+
+[[package]]
+name = "miwa"
+changelog_path = "crates/miwa/CHANGELOG.md"
+publish = true
+release = true
+git_release_enable = true
+changelog_update = true
+git_tag_enable = true
+
+[[package]]
+name = "miwa-core"
+changelog_path = "crates/miwa-core/CHANGELOG.md"
+publish = true
+release = true
+git_release_enable = false
+changelog_update = true
+git_tag_enable = true
+
+[[package]]
+name = "miwa-macros"
+publish = true
+release = true
+git_release_enable = true
+changelog_update = false
+git_tag_enable = true
