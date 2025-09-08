@@ -1,6 +1,7 @@
 use std::{
     any::{Any, TypeId},
     collections::HashMap,
+    sync::Arc,
 };
 
 pub struct Container {
@@ -20,6 +21,11 @@ impl Container {
     pub(crate) fn register<T: Send + 'static>(&mut self, resource: T) {
         self.services
             .insert(TypeId::of::<T>(), DynSingleton::new(resource));
+    }
+
+    pub(crate) fn register_trait<T: ?Sized + Send + Sync + 'static>(&mut self, resource: Arc<T>) {
+        self.services
+            .insert(TypeId::of::<Arc<T>>(), DynSingleton::new(resource));
     }
 }
 

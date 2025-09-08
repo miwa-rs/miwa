@@ -1,5 +1,7 @@
-use miwa::core::{Extension, Miwa, MiwaContext, MiwaResult};
-use miwa::derive::{extension, interface, Injectable};
+use std::sync::Arc;
+
+use miwa::core::{Dep, Extension, Miwa, MiwaContext, MiwaResult};
+use miwa::derive::extension;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -30,12 +32,13 @@ impl Extension for FirstExtension {
     }
 }
 
-#[interface]
-pub trait Service {
+pub trait Service: Send + Sync {
     fn hello(&self);
 }
 
-#[derive(Clone, Debug, Injectable)]
+pub type ServiceRef = Arc<dyn Service>;
+
+#[derive(Clone, Debug)]
 pub struct ServiceImpl;
 
 impl Service for ServiceImpl {
@@ -46,12 +49,12 @@ impl Service for ServiceImpl {
 
 #[extension(provides(ServiceRef))]
 async fn first_extension(context: &MiwaContext) -> MiwaResult<FirstExtension> {
-    context.register(ServiceRef::of(ServiceImpl));
+    context.register_trait::<dyn Service>(Arc::new(ServiceImpl));
     Ok(FirstExtension)
 }
 
 #[extension]
-async fn second_extension(service: ServiceRef) -> MiwaResult<SecondExtension> {
+async fn second_extension(Dep(service): Dep<ServiceRef>) -> MiwaResult<SecondExtension> {
     Ok(SecondExtension(service))
 }
 

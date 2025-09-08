@@ -110,20 +110,19 @@ impl Miwa<Build> {
     }
 
     pub async fn start(mut self) -> MiwaResult<MiwaHandle> {
-        let mut extensions = vec![];
-
+        let mut extensions = HashMap::new();
         let sorted = self.sort_dependencies();
 
         for idx in &sorted {
             let extension = &self.0.extensions[*idx];
-            info!("initializing extension {}", extension.name());
+            info!("Initializing extension {}", extension.name());
             let ext = extension.init(&self.0.ctx).await?;
-            extensions.push(ext);
+            extensions.insert(*idx, ext);
         }
 
         for idx in &sorted {
             let extension = &self.0.extensions[*idx];
-            let ext = &extensions[*idx];
+            let ext = &extensions[idx];
             info!("Starting extension {}", extension.name());
             ext.start().await?;
         }
@@ -139,7 +138,7 @@ impl Miwa<Build> {
 
             for idx in sorted {
                 let extension = &miwa.0.extensions[idx];
-                let ext = &extensions[idx];
+                let ext = &extensions[&idx];
                 info!("Stopping extension {}", extension.name());
                 let _ = ext.shutdown().await;
             }

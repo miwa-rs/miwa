@@ -52,7 +52,8 @@ pub fn generate(extension: &Extension, item_fn: &ItemFn) -> proc_macro::TokenStr
             let ty = &pat.ty;
             let id = quote::format_ident!("p{}", idx);
             args.push(id.clone());
-            requires.push(quote! { std::any::TypeId::of::<#ty>()});
+            // requires.push(quote! { std::any::TypeId::of::<#ty>()});
+            requires.push(quote! { <#ty as #crate_name::core::MiwaId>::component_id()});
             extractors.push(quote! {
                 let #id = <#ty as #crate_name::core::FromMiwaContext>::from_context(&context)?;
             });

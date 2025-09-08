@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    any::TypeId,
+    sync::{Arc, Mutex},
+};
 
 use crate::{MiwaConfig, MiwaResult};
 
@@ -36,6 +39,14 @@ impl MiwaContext {
         services.register(resource);
     }
 
+    pub fn register_trait<T>(&self, resource: Arc<T>)
+    where
+        T: ?Sized + Send + Sync + 'static,
+    {
+        let mut services = self.services.lock().unwrap();
+        services.register_trait(resource);
+    }
+
     pub fn config(&self) -> &MiwaConfig {
         &self.config
     }
@@ -43,6 +54,10 @@ impl MiwaContext {
     pub fn component_id(&self) -> &str {
         &self.component_id
     }
+}
+
+pub trait MiwaId {
+    fn component_id() -> TypeId;
 }
 
 pub trait FromMiwaContext<'a>
@@ -55,5 +70,11 @@ where
 impl<'a> FromMiwaContext<'a> for &'a MiwaContext {
     fn from_context(context: &'a MiwaContext) -> MiwaResult<Self> {
         Ok(context)
+    }
+}
+
+impl MiwaId for &MiwaContext {
+    fn component_id() -> TypeId {
+        TypeId::of::<&MiwaContext>()
     }
 }

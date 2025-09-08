@@ -6,6 +6,8 @@ use serde_json::Value;
 
 use crate::{FromMiwaContext, MiwaResult};
 
+use super::MiwaId;
+
 #[derive(Debug, Clone)]
 pub struct MiwaConfig {
     cfg: Config,
@@ -48,6 +50,12 @@ impl<'a, T: Configurable + DeserializeOwned> FromMiwaContext<'a> for ExtensionCo
     fn from_context(context: &'a crate::MiwaContext) -> crate::MiwaResult<Self> {
         let cfg = context.config().get::<T>(T::prefix())?;
         Ok(ExtensionConfig(cfg))
+    }
+}
+
+impl<T: 'static> MiwaId for ExtensionConfig<T> {
+    fn component_id() -> std::any::TypeId {
+        std::any::TypeId::of::<ExtensionConfig<T>>()
     }
 }
 
